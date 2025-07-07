@@ -1,14 +1,23 @@
 import { render, screen } from "@testing-library/react";
 import BookingForm from "./BookingForm";
 
-// Заглушка пропсов
-const mockProps = {
-  availableTimes: ["17:00", "18:00", "19:00"],
-  dispatch: jest.fn(),
-};
+const mockDispatch = jest.fn();
 
-test("Renders the BookingForm heading", () => {
-  render(<BookingForm {...mockProps} />);
-  const headingElement = screen.getByLabelText(/Choose date/i);
-  expect(headingElement).toBeInTheDocument();
+test("Date input has required attribute", () => {
+  render(<BookingForm availableTimes={[]} dispatch={mockDispatch} />);
+  const dateInput = screen.getByLabelText(/choose date/i);
+  expect(dateInput).toHaveAttribute("required");
+});
+
+test("Guests input has min=1 and max=10", () => {
+  render(<BookingForm availableTimes={[]} dispatch={mockDispatch} />);
+  const guestsInput = screen.getByLabelText(/number of guests/i);
+  expect(guestsInput).toHaveAttribute("min", "1");
+  expect(guestsInput).toHaveAttribute("max", "10");
+});
+
+test("Time select is disabled if no available times", () => {
+  render(<BookingForm availableTimes={[]} dispatch={mockDispatch} />);
+  const timeSelect = screen.getByLabelText(/choose time/i);
+  expect(timeSelect).toBeDisabled();
 });

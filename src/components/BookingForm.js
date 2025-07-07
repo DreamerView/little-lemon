@@ -1,54 +1,74 @@
 import React, { useState } from "react";
-import { submitAPI } from "../utils/api";
+import { submitAPI } from "../utils/api"; // Убедись, что импорт корректен
 
 const BookingForm = ({ availableTimes, dispatch }) => {
-  const [date, setDate] = useState("");
-  const [time, setTime] = useState("");
-  const [guests, setGuests] = useState(1);
-  const [occasion, setOccasion] = useState("Birthday");
+  const [formData, setFormData] = useState({
+    date: "",
+    time: "",
+    guests: 1,
+    occasion: "Birthday",
+  });
 
-  const handleDateChange = (e) => {
-    const newDate = e.target.value;
-    setDate(newDate);
-    dispatch({ date: new Date(newDate) });
+  const [isTouched, setIsTouched] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleChange = (e) => {
+    const { id, value } = e.target;
+    setFormData((prev) => ({ ...prev, [id]: value }));
+
+    if (id === "date") {
+      dispatch({ date: new Date(value) });
+    }
   };
+
+  const isFormValid =
+    formData.date &&
+    formData.time &&
+    Number(formData.guests) >= 1 &&
+    formData.occasion;
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const formData = {
-      date,
-      time,
-      guests,
-      occasion,
-    };
-    const result = submitAPI(formData);
-    if (result) {
-      alert("Booking successful!");
-    } else {
-      alert("Booking failed!");
+    setIsTouched(true);
+
+    if (isFormValid) {
+      const success = submitAPI(formData);
+      if (success) {
+        setSubmitted(true);
+        alert("Reservation submitted successfully!");
+        // Optionally reset form here
+      } else {
+        alert("Submission failed. Try again.");
+      }
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: "grid", gap: "1rem", maxWidth: "300px" }}>
-      <label htmlFor="res-date">Choose date</label>
+    <form
+      onSubmit={handleSubmit}
+      style={{ display: "grid", maxWidth: "300px", gap: "16px" }}
+    >
+      <h2>Book a Table</h2>
+
+      <label htmlFor="date">Choose date</label>
       <input
         type="date"
-        id="res-date"
-        value={date}
-        onChange={handleDateChange}
+        id="date"
+        value={formData.date}
+        onChange={handleChange}
         required
       />
 
-      <label htmlFor="res-time">Choose time</label>
+      <label htmlFor="time">Choose time</label>
       <select
-        id="res-time"
-        value={time}
-        onChange={(e) => setTime(e.target.value)}
+        id="time"
+        value={formData.time}
+        onChange={handleChange}
         required
+        disabled={!availableTimes || availableTimes.length === 0}
       >
-        <option value="">-- Select time --</option>
-        {availableTimes.map((t) => (
+        <option value="">Select a time</option>
+        {availableTimes?.map((t) => (
           <option key={t} value={t}>
             {t}
           </option>
@@ -59,8 +79,8 @@ const BookingForm = ({ availableTimes, dispatch }) => {
       <input
         type="number"
         id="guests"
-        value={guests}
-        onChange={(e) => setGuests(e.target.value)}
+        value={formData.guests}
+        onChange={handleChange}
         min="1"
         max="10"
         required
@@ -69,14 +89,19 @@ const BookingForm = ({ availableTimes, dispatch }) => {
       <label htmlFor="occasion">Occasion</label>
       <select
         id="occasion"
-        value={occasion}
-        onChange={(e) => setOccasion(e.target.value)}
+        value={formData.occasion}
+        onChange={handleChange}
+        required
       >
         <option>Birthday</option>
         <option>Anniversary</option>
       </select>
 
-      <button type="submit">Make Reservation</button>
+      <button type="submit" disabled={!isFormValid && isTouched}>
+        Submit reservation
+      </button>
+
+      {submitted && <p style={{ color: "green" }}>✔ Reservation sent!</p>}
     </form>
   );
 };
