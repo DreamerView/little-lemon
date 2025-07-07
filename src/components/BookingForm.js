@@ -1,14 +1,17 @@
 import React, { useState } from "react";
+import { submitAPI } from "../utils/api";
 
-function BookingForm() {
+const BookingForm = ({ availableTimes, dispatch }) => {
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [guests, setGuests] = useState(1);
-  const [occasion, setOccasion] = useState("");
+  const [occasion, setOccasion] = useState("Birthday");
 
-  const [availableTimes] = useState([
-    "17:00", "18:00", "19:00", "20:00", "21:00"
-  ]);
+  const handleDateChange = (e) => {
+    const newDate = e.target.value;
+    setDate(newDate);
+    dispatch({ date: new Date(newDate) });
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -16,20 +19,24 @@ function BookingForm() {
       date,
       time,
       guests,
-      occasion
+      occasion,
     };
-    console.log("Reservation submitted:", formData);
-    alert("Reservation submitted!");
+    const result = submitAPI(formData);
+    if (result) {
+      alert("Booking successful!");
+    } else {
+      alert("Booking failed!");
+    }
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: "grid", maxWidth: "300px", gap: "20px" }}>
+    <form onSubmit={handleSubmit} style={{ display: "grid", gap: "1rem", maxWidth: "300px" }}>
       <label htmlFor="res-date">Choose date</label>
       <input
         type="date"
         id="res-date"
         value={date}
-        onChange={(e) => setDate(e.target.value)}
+        onChange={handleDateChange}
         required
       />
 
@@ -42,7 +49,9 @@ function BookingForm() {
       >
         <option value="">-- Select time --</option>
         {availableTimes.map((t) => (
-          <option key={t} value={t}>{t}</option>
+          <option key={t} value={t}>
+            {t}
+          </option>
         ))}
       </select>
 
@@ -50,10 +59,10 @@ function BookingForm() {
       <input
         type="number"
         id="guests"
-        min="1"
-        max="10"
         value={guests}
         onChange={(e) => setGuests(e.target.value)}
+        min="1"
+        max="10"
         required
       />
 
@@ -62,16 +71,14 @@ function BookingForm() {
         id="occasion"
         value={occasion}
         onChange={(e) => setOccasion(e.target.value)}
-        required
       >
-        <option value="">-- Select occasion --</option>
         <option>Birthday</option>
         <option>Anniversary</option>
       </select>
 
-      <button type="submit">Submit reservation</button>
+      <button type="submit">Make Reservation</button>
     </form>
   );
-}
+};
 
 export default BookingForm;
